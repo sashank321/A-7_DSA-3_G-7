@@ -1,0 +1,44 @@
+# Build artifacts
+target/
+**/target/
+build/
+**/build/
+out/
+**/out/
+
+# Dependencies
+node_modules/
+**/node_modules/
+lib/
+lib-extra/
+*.jar
+
+# IDE and Editor files
+.vscode/
+.idea/
+*.iml
+.classpath
+.project
+.settings/
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Scratch and build logs
+*.zip
+*.tar.gz
+*.log
+build_output.txt
+javac_args.txt
+sources.txt
+@sources.txt
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Environment and local configs
+.env
+.env.local
+.env.*.local
