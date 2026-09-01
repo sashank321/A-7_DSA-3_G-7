@@ -1,0 +1,195 @@
+@import "tailwindcss";
+
+@theme {
+  /* ---- Foldcraft-derived palette ---- */
+  --color-ink: #0d0d1a;
+  --color-ink-2: #1a1a2e;
+  --color-ink-3: #2d2d4e;
+  --color-ink-4: #3d3d6e;
+  --color-ink-5: #5a5a7a;
+  --color-amber: #3b82f6;
+  --color-amber-2: #60a5fa;
+  --color-amber-3: #1d4ed8;
+  --color-paper: #faf8f5;
+  --color-paper-2: #f5f5f5;
+  --color-mist: #efece5;
+
+  --color-success: #3f9d63;
+  --color-danger: #c8513a;
+
+  --font-geist: "Geist", "Plus Jakarta Sans", sans-serif;
+  --font-display: "DM Serif Display", Georgia, serif;
+  --font-sans: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "Space Mono", ui-monospace, monospace;
+
+  --ease-fold: cubic-bezier(0.22, 1, 0.36, 1);
+
+  --radius-card: 14px;
+
+  --shadow-card: 0 1px 2px rgba(26, 26, 46, 0.06), 0 8px 24px rgba(26, 26, 46, 0.08);
+  --shadow-card-hover: 0 2px 4px rgba(26, 26, 46, 0.1), 0 16px 40px rgba(26, 26, 46, 0.16);
+  --shadow-dark: 0 20px 60px rgba(13, 13, 26, 0.5);
+}
+
+@theme inline {
+  --font-geist: 'Geist', sans-serif;
+}
+
+@keyframes fadeSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: var(--font-sans);
+  background: var(--color-paper);
+  color: var(--color-ink-2);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+::selection {
+  background: var(--color-amber);
+  color: var(--color-paper);
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-ink-4);
+  border-radius: 8px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-amber);
+  background-clip: content-box;
+}
+
+/* ---- shared utilities ---- */
+
+.font-display {
+  font-family: var(--font-display);
+  font-weight: 400;
+  letter-spacing: -0.015em;
+}
+
+.eyebrow {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.28em;
+  color: var(--color-amber);
+}
+
+.eyebrow--light {
+  color: var(--color-amber-2);
+}
+
+.grad-ink {
+  background: linear-gradient(135deg, var(--color-ink-2) 0%, var(--color-ink-3) 100%);
+}
+.grad-ink-deep {
+  background: linear-gradient(135deg, var(--color-ink-2) 0%, var(--color-ink-3) 50%, var(--color-ink) 100%);
+}
+.grad-amber {
+  background: linear-gradient(135deg, var(--color-amber) 0%, var(--color-amber-2) 100%);
+}
+.grad-amber-deep {
+  background: linear-gradient(135deg, var(--color-amber-3) 0%, var(--color-amber) 100%);
+}
+
+.text-gradient-amber {
+  background: linear-gradient(135deg, var(--color-amber-2), var(--color-amber));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* rising underline link */
+.link-rise {
+  position: relative;
+}
+.link-rise::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -3px;
+  height: 1.5px;
+  width: 100%;
+  background: currentColor;
+  transform: scaleX(0);
+  transform-origin: right;
+  transition: transform 0.45s var(--ease-fold);
+}
+.link-rise:hover::after {
+  transform: scaleX(1);
+  transform-origin: left;
+}
+
+/* card hover lift */
+.card-lift {
+  transition: transform 0.5s var(--ease-fold), box-shadow 0.5s var(--ease-fold);
+}
+.card-lift:hover {
+  transform: translateY(-6px);
+  box-shadow: var(--shadow-card-hover);
+}
+
+/* film-grain overlay (landing hero) */
+.grain::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.5;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.05'/%3E%3C/svg%3E");
+}
+
+/* scroll progress bar (fixed top) */
+.scroll-progress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  z-index: 80;
+  transform-origin: 0 50%;
+  background: linear-gradient(90deg, var(--color-amber), var(--color-amber-2));
+}
+
+/* marquee (algorithm ticker) */
+@keyframes marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+.marquee-track {
+  animation: marquee 28s linear infinite;
+  will-change: transform;
+}
+
+/* hero canvas never eats pointer events */
+.canvas-hero {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
