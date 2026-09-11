@@ -42,6 +42,8 @@ The project focuses on applying **Data Structures and Algorithms (DSA)** to a pr
 * [Research Gap](#research-gap)
 * [Existing Systems Studied](#existing-systems-studied)
 * [Project Scope](#project-scope)
+* [Team Organization & Contribution Matrix](#team-organization--contribution-matrix)
+* [4-Review Trajectory & Milestone Roadmap](#4-review-trajectory--milestone-roadmap)
 * [Expected Outcomes](#expected-outcomes)
 * [Future Enhancements](#future-enhancements)
 * [Limitations](#limitations)
@@ -915,4 +917,119 @@ StrataSearch focuses on the following areas:
 
 ### Out of Scope
 
-StrataSearch is not intended
+* Semantic natural language understanding (LLM-based vector embedding search) — StrataSearch is strictly focused on deterministic Data Structures & Algorithms (DSA).
+* Web crawling or live external internet scrapers.
+* Distributed computing cluster orchestration (Spark/Hadoop).
+* **Boyer-Moore Algorithm** — Strictly excluded from the algorithmic search engine. StrataSearch standardizes on KMP, Rabin-Karp, and Z-Algorithm for single-pattern matching, and Aho-Corasick / Suffix Array for multi-pattern and indexed search.
+
+---
+
+# Team Organization & Multi-Stack Contribution Matrix
+
+**Academic Course:** Data Structures and Algorithms III (DSA-3)  
+**Group Identification:** Group 7 (A-7_DSA-3_G-7)  
+**Team Size:** 3 Members  
+
+To ensure comprehensive engineering and balanced algorithmic contribution, every team member has dedicated ownership of core DSA algorithms while contributing across backend and frontend engineering:
+
+```text
+┌──────────────────────────────────────────────────────────────────────────────────────────────────┐
+│                                BALANCED MULTI-STACK RESPONSIBILITY                               │
+├─────────────────────────┬──────────────────────────────────┬─────────────────────────────────────┤
+│ Member 1 (Sashank)      │ Member 2 (Rithvik)               │ Member 3 (Arnavi)                   │
+├─────────────────────────┼──────────────────────────────────┼─────────────────────────────────────┤
+│ DSA ALGORITHMS (CORE):  │ DSA ALGORITHMS (CORE):           │ DSA ALGORITHMS (CORE):              │
+│ • KMP (Knuth-Morris-    │ • Rabin-Karp (Rolling hash,      │ • Z-Algorithm (Linear fundamental   │
+│   Pratt) with π-table   │   polynomial arithmetic, mod)    │   box preprocessing & matching)     │
+│ • Aho-Corasick Automaton│ • Suffix Array Construction      │ • SearchStepSink & VisualizationStep│
+│   (Trie + failure links)│   & Binary Search on suffixes    │   state tracking engine             │
+│ • QueryPlanner & Cost-  │                                  │ • TextNormalizer & IntSortUtil      │
+│   Model heuristic engine│                                  │                                     │
+├─────────────────────────┼──────────────────────────────────┼─────────────────────────────────────┤
+│ BACKEND CONTRIBUTION:   │ BACKEND CONTRIBUTION:            │ BACKEND CONTRIBUTION:               │
+│ • Parent multi-module   │ • Spring Boot app configuration  │ • VisualizationController & Service │
+│   POM & EngineGateway   │ • Document upload (PDFBox/text)  │ • BenchmarkController & Service     │
+│ • CoreAdapter & Search- │ • CorpusSession & SessionStore   │ • REST DTOs & Mapping Layer         │
+│   Service execution     │ • Asynchronous JobExecutor &     │   (Benchmark/Visualization DTOs)    │
+│ • SearchController REST │   WebSocket streaming handler    │                                     │
+├─────────────────────────┼──────────────────────────────────┼─────────────────────────────────────┤
+│ FRONTEND CONTRIBUTION:  │ FRONTEND CONTRIBUTION:           │ FRONTEND CONTRIBUTION:              │
+│ • PlannerPanel (Planner │ • WebSocket client (jobSocket.ts)│ • Vite + React + Tailwind workspace │
+│   decision tree & costs)│ • HTTP networking layer (http.ts)│ • FoldcraftHero & Workspace layout  │
+│ • Zustand labStore      │ • JobProgressFeed (live streaming│ • VisualizationPlayer (interactive  │
+│   coordinating planner  │   progress bar & status events)  │   Play/Pause/Step/Speed controls)   │
+│   and algorithm state   │                                  │ • TelemetryPanel & BenchmarkPanel   │
+│                         │                                  │ • CitationGraphPanel (network view) │
+└─────────────────────────┴──────────────────────────────────┴─────────────────────────────────────┘
+```
+
+---
+
+# 4-Review Trajectory & Milestone Roadmap
+
+The project development lifecycle is structured across four rigorous academic evaluations:
+
+```text
+Review 1 (20%) ────────► Review 2 (45%) ────────► Review 3 (75% - Current) ────────► Review 4 (100% - Next)
+[Formulation & Trajectory]  [Core DSA & Base APIs]   [Advanced Indexing & Workspace]   [Corpus Profiler & Final]
+```
+
+### Review 1: Trajectory Formulation & System Design (Completed)
+* **Target:** Problem definition, algorithmic baseline, and multi-module foundation (~20%).
+* **Member 1 (Sashank):** Designed algorithm interfaces (`SearchAlgorithm`, `SearchResult`, `SearchStepSink`), multi-module parent POM, and system architecture.
+* **Member 2 (Rithvik):** Initialized Spring Boot 3.3 skeleton, dependency matrix, and basic application properties.
+* **Member 3 (Arnavi):** Scaffolded Vite React TypeScript workspace, Tailwind CSS build pipeline, and routing shell.
+
+### Review 2: Core DSA Implementations & Base Pipeline (Completed)
+* **Target:** Single-pattern search algorithms, REST services, and initial UI workbench (~45%).
+* **Member 1 (Sashank):** 
+  * Implemented KMP searcher (with $\pi$-table tracking).
+  * Built `EngineGateway`, `CoreAdapter`, and `SearchController` backend execution pipeline.
+  * Configured central Zustand `labStore.ts` state management.
+* **Member 2 (Rithvik):** 
+  * Implemented Rabin-Karp rolling hash searcher with collision resolution.
+  * Implemented session store (`CorpusSession`, `SessionStore`) and PDF/text ingestion via Apache PDFBox.
+  * Implemented frontend HTTP API client (`api/http.ts`, `api/endpoints.ts`, `api/types.ts`).
+* **Member 3 (Arnavi):** 
+  * Implemented Z-Algorithm linear string searcher and `VisualizationStep` state emitter.
+  * Implemented `AlgorithmController` and base response DTOs.
+  * Built `FoldcraftHero` landing page, `WorkspacePage` layout, and `QueryPanel` / `CorpusPanel` UI.
+
+### Review 3: Advanced Matching, Planner & Interactive Workbench (Current Milestone — 75%)
+* **Target:** Multi-pattern indexing, dynamic query planning, WebSocket streaming, and interactive visualizer (~75%).
+* **Member 1 (Sashank):** 
+  * Implemented Aho-Corasick multi-string automaton (Trie + failure transitions + output matching).
+  * Built the dynamic `QueryPlanner` with heuristic `CostModel` and explainability engine.
+  * Implemented `PlannerPanel.tsx` (decision tree visualization, score ranking, confidence gauge).
+* **Member 2 (Rithvik):** 
+  * Implemented Suffix Array construction and binary search over suffixes.
+  * Built asynchronous `JobExecutor` with thread-safe `JobRegistry` and native WebSocket streaming at `/ws/jobs/{jobId}`.
+  * Built `api/jobSocket.ts` and `JobProgressFeed.tsx` for real-time WebSocket progress bars.
+* **Member 3 (Arnavi):** 
+  * Built backend `VisualizationController`, `VisualizationService`, `BenchmarkController`, and `BenchmarkService`.
+  * Developed `VisualizationPlayer.tsx` with step-by-step playback controls (Play/Pause/Step/Speed).
+  * Implemented live `TelemetryPanel.tsx`, `BenchmarkPanel.tsx`, and `CitationGraphPanel.tsx`.
+
+### Review 4: Corpus Profiling, Similarity DSA & Final Submission (Next Review — Final 25%)
+* **Target:** Deep corpus profiling, document similarity analysis, full test coverage, and deployment packaging (100%).
+* **Member 1 (Sashank):**
+  * **Corpus Profiling Engine:** Implement Shannon character entropy, Type-Token Ratio (TTR) vocabulary richness, and lexical density calculations.
+  * **Corpus Fingerprinting Integration:** Connect document statistical profiles into the Query Planner for enhanced cost evaluation.
+  * **Fuzzy & Similarity DSA:** Implement Levenshtein Edit Distance and Longest Common Subsequence (LCS).
+  * **Core Test Suite:** Unit testing and edge-case benchmark validation.
+* **Member 2 (Rithvik):**
+  * **Corpus Profiling APIs:** Expose `/api/corpus/profile` and `/api/workflow/analyze` endpoints for asynchronous profiling.
+  * **Document Similarity Service:** Pairwise similarity scoring and duplicate detection pipeline.
+  * **Backend Test Suite:** MockMvc controller tests and WebSocket integration test suite.
+  * **Containerization:** Production Dockerfile and root `docker-compose.yml`.
+* **Member 3 (Arnavi):**
+  * **Corpus Profiling Dashboard:** Visual gauges for Shannon entropy, lexical density meters, and vocabulary distribution histograms.
+  * **Document Comparison View:** Side-by-side duplicate and similarity diff highlighter.
+  * **3D Graph Physics Refinements:** Advanced citation clustering and interactive force-directed controls.
+  * **Export Utilities & Shortcuts:** PDF/PNG benchmark report export and keyboard navigation controls.
+
+---
+
+# License
+Academic Free License / Educational Use — DSA-3 Coursework (Group 7).
+
