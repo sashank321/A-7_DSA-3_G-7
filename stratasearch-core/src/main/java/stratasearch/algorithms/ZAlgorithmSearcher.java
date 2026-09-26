@@ -45,7 +45,7 @@ public class ZAlgorithmSearcher implements SearchAlgorithm {
             if (M == 0 || N < M) {
                 continue;
             }
-            String Combined = Pattern + "" + CorpusText;
+            String Combined = Pattern + "\u0001" + CorpusText;
             int L = Combined.length();
             int[] Z = new int[L];
             int Left = 0;
