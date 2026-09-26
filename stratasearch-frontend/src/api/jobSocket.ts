@@ -21,8 +21,10 @@ export interface JobSocketHandlers {
  * In dev this goes through the Vite proxy (/ws → ws://localhost:8080).
  */
 export function subscribeToJob(jobId: string, handlers: JobSocketHandlers): () => void {
-  const proto = window.location.protocol === "https:" ? "wss" : "ws";
-  const socket = new WebSocket(`${proto}://${window.location.host}/ws/jobs/${jobId}`);
+  const wsUrl = import.meta.env.VITE_WS_URL
+    ? `${(import.meta.env.VITE_WS_URL as string).replace(/\/$/, "")}/ws/jobs/${jobId}`
+    : `${window.location.protocol === "https:" ? "wss" : "ws"}://${window.location.host}/ws/jobs/${jobId}`;
+  const socket = new WebSocket(wsUrl);
   let done = false;
 
   socket.onmessage = (msg) => {

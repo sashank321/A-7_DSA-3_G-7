@@ -32,8 +32,12 @@ const enrichError: BeforeErrorHook = (state) => {
   return error;
 };
 
+const apiBase = import.meta.env.VITE_API_URL
+  ? `${(import.meta.env.VITE_API_URL as string).replace(/\/$/, "")}/api/v1`
+  : "/api/v1";
+
 export const http = ky.create({
-  prefix: "/api/v1",
+  prefix: apiBase,
   timeout: 60_000,
   retry: 0,
   hooks: { beforeError: [enrichError] },
