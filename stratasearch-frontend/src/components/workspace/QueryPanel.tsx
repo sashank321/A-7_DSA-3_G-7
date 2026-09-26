@@ -1,4 +1,4 @@
-import { useState, useMemo, useRef, useEffect } from "react";
+import { useState, useMemo, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Play, Repeat, Sparkles } from "lucide-react";
 import { useLabStore } from "../../stores/labStore";

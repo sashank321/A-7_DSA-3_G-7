@@ -7,7 +7,7 @@ export default function CitationGraphPanel() {
   const documents = useLabStore((s) => s.documents);
   const citationGraph = useLabStore((s) => s.citationGraph);
   const computeCitationGraph = useLabStore((s) => s.computeCitationGraph);
-  const graphRef = useRef<any>();
+  const graphRef = useRef<any>(null);
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
   const containerRef = useRef<HTMLDivElement>(null);
   const [selectedNode, setSelectedNode] = useState<any | null>(null);

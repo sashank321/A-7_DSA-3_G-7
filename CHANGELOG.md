@@ -7,7 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-## [Unreleased] - 2026-09-25
+## [Unreleased] - 2026-09-26
+
+### Fixed
+- **Frontend Build**: Fixed `useRef<any>()` uninitialized parameter in [`CitationGraphPanel.tsx`](file:///d:/College/Second%20Year/Second%20year%201st%20sem/DSA%203/Zcode%20trail/stratasearch-frontend/src/components/workspace/CitationGraphPanel.tsx) and removed unused `useEffect` import in [`QueryPanel.tsx`](file:///d:/College/Second%20Year/Second%20year%201st%20sem/DSA%203/Zcode%20trail/stratasearch-frontend/src/components/workspace/QueryPanel.tsx) to resolve TypeScript build errors.
+- **Backend Build & Assembly**: Resolved missing reactor artifact dependency by executing `mvn clean install` for `stratasearch-core`.
+- **CORS & WebSocket**: Added `http://127.0.0.1:5173` to allowed CORS and WebSocket origins and enabled `changeOrigin: true` on Vite's WebSocket reverse proxy.
+
+### Added
+- **Launcher Scripts**: Created [`start.bat`](file:///d:/College/Second%20Year/Second%20year%201st%20sem/DSA%203/Zcode%20trail/start.bat) and [`start.ps1`](file:///d:/College/Second%20Year/Second%20year%201st%20sem/DSA%203/Zcode%20trail/start.ps1) for seamless one-command deployment with Java 21 environment setup.
 
 ### Scheduled
 - Configured automated commit pipeline scheduled through September 30, 2026.
