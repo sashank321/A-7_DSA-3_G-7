@@ -1,3 +1,9 @@
+## [1.0.2] - 2026-09-27
+
+### Changed
+- Added .editorconfig for consistent indentation across editors
+- Code review pass on core algorithm classes
+
 # Changelog
 
 All notable changes to the **StrataSearch** project will be documented in this file.
