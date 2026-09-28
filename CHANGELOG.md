@@ -1,3 +1,9 @@
+## [1.0.3] - 2026-09-28
+
+### Added
+- Unit tests for TextNormalizer control-char normalization
+- Unit tests for KMP searcher occurrence detection
+
 ## [1.0.2] - 2026-09-27
 
 ### Changed
