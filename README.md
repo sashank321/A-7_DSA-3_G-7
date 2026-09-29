@@ -1033,3 +1033,10 @@ Review 1 (20%) ────────► Review 2 (45%) ───────�
 # License
 Academic Free License / Educational Use — DSA-3 Coursework (Group 7).
 
+
+## Running Tests
+
+```bash
+# Run core unit tests
+./mvnw test -pl stratasearch-core
+```
