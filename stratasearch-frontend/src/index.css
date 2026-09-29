@@ -193,3 +193,6 @@ body {
   inset: 0;
   pointer-events: none;
 }
+
+/* benchmark panel badge hover state */
+.badge:hover { opacity: 0.85; transition: opacity 0.15s; }
