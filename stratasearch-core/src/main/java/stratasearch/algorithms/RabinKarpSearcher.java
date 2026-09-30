@@ -1,6 +1,7 @@
 package stratasearch.algorithms;
 
 // Rabin-Karp rolling hash. Iterates every supplied pattern over the corpus with manual verification.
+// Prime modulus chosen to minimise hash collisions for ASCII-128 alphabet
 public class RabinKarpSearcher implements SearchAlgorithm {
     private static final long Base = 257L;
     private static final long Mod = 1000000007L;
