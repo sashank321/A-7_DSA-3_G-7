@@ -1,3 +1,9 @@
+## [1.0.4] - 2026-09-30
+
+### Changed
+- CostModel: added weight-calibration documentation
+- RabinKarp: documented prime-modulus selection for ASCII-128
+
 ## [1.0.3] - 2026-09-28
 
 ### Added
