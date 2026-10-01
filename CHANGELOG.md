@@ -1,3 +1,10 @@
+## [1.0.5] - 2026-10-01
+
+### Added
+- `bigramRichness` metric in TypeScript client profiler
+### Fixed
+- Null/empty text guard in CorpusProfiler
+
 ## [1.0.4] - 2026-09-30
 
 ### Changed
