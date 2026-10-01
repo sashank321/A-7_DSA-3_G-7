@@ -114,3 +114,12 @@ export function profileCorpus(
     categoryTags: tags,
   };
 }
+
+
+/** Bigram richness: unique bigrams / total bigrams */
+export function bigramRichness(text: string): number {
+  if (text.length < 2) return 0;
+  const bigrams = new Set<string>();
+  for (let i = 0; i < text.length - 1; i++) bigrams.add(text[i] + text[i + 1]);
+  return bigrams.size / (text.length - 1);
+}
