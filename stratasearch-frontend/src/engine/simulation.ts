@@ -1,3 +1,4 @@
+// Playback: step delay kept <= 80ms for smooth animation feel
 import type {
   AlgorithmCapability,
   BenchmarkRow,
