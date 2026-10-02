@@ -39,3 +39,13 @@ Unlike online search algorithms like Knuth1977_FastPatternMatching, Rabin1981_Ra
 ];
 
 export const SAMPLE_PATTERNS = "pattern\nalgorithm\nsuffix\nlinear\nsearch";
+
+
+// 5th sample paper added 2026-10-02
+export const PAPER_5 = {
+  id: "p5",
+  title: "Practical Suffix Array Construction in Linear Time",
+  abstract: "We present a practical implementation of suffix array construction achieving O(n) time complexity using the DC3/skew algorithm. Benchmarks on corpora of 10^7 characters show 2.3x speedup versus naive O(n log n) sort-based approaches.",
+  body: "Suffix arrays provide a space-efficient alternative to suffix trees for string indexing. The DC3 algorithm partitions suffixes into three classes by position modulo 3, recursively sorts two thirds, then merges all in linear time.",
+  citations: ["p2", "p3"],
+};
