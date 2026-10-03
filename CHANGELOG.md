@@ -7,7 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-## [Unreleased] - 2026-09-26
+## [Unreleased] - 2026-10-03
+
+### Fixed
+- **Cloud Deployment Resiliency**: Resolved Vercel SPA rewrite conflict where `/api/v1` requests received HTML index responses, causing client-side JSON parse exceptions.
+- **Hybrid Engine Architecture**: Implemented full in-browser algorithmic engine in [`src/engine/`](file:///d:/College/Second%20Year/Second%20year%201st%20sem/DSA%203/Zcode%20trail/stratasearch-frontend/src/engine) mirroring the Java core (KMP, Rabin-Karp, Z-Algorithm, Aho-Corasick, Suffix Array + LCP, CostModel QueryPlanner, and Corpus Profiler) for zero-downtime execution even without a remote backend.
+- **Initial State & Usability**: Pre-loaded foundational research papers with inter-document citations and added a one-click "Sample Papers" button in [`CorpusPanel.tsx`](file:///d:/College/Second%20Year/Second%20year%201st%20sem/DSA%203/Zcode%20trail/stratasearch-frontend/src/components/workspace/CorpusPanel.tsx).
+
+---
+
+## [1.0.1] - 2026-09-26
 
 ### Fixed
 - **Frontend Build**: Fixed `useRef<any>()` uninitialized parameter in [`CitationGraphPanel.tsx`](file:///d:/College/Second%20Year/Second%20year%201st%20sem/DSA%203/Zcode%20trail/stratasearch-frontend/src/components/workspace/CitationGraphPanel.tsx) and removed unused `useEffect` import in [`QueryPanel.tsx`](file:///d:/College/Second%20Year/Second%20year%201st%20sem/DSA%203/Zcode%20trail/stratasearch-frontend/src/components/workspace/QueryPanel.tsx) to resolve TypeScript build errors.

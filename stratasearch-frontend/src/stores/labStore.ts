@@ -10,6 +10,13 @@ import type {
   VisualizationResponse,
   WorkflowAnalyzeResponse,
 } from "../api/types";
+import {
+  DEFAULT_CAPABILITIES,
+  executeAlgorithm,
+  runVisualizationSimulation,
+  runWorkflowSimulation,
+} from "../engine/simulation";
+import { SAMPLE_DOCUMENTS, SAMPLE_PATTERNS } from "../engine/sampleData";
 
 export interface LabFile {
   name: string;
@@ -52,6 +59,7 @@ interface LabState {
   addDocuments: (files: LabFile[]) => void;
   removeDocument: (name: string) => void;
   clearCorpus: () => void;
+  loadSampleCorpus: () => void;
   setPatterns: (raw: string) => void;
   setRepeated: (repeated: boolean) => void;
   setOptimizationBias: (bias: number) => void;
@@ -69,13 +77,47 @@ interface LabState {
 const MAX_DOCS = 32;
 const MAX_DOC_CHARS = 400_000;
 
+function computeGraph(docs: LabFile[]) {
+  const nodesMap = new Map();
+  docs.forEach((d) => {
+    nodesMap.set(d.name, {
+      id: d.name,
+      name: d.name,
+      size: d.content.length,
+      inDegree: 0,
+      outDegree: 0,
+    });
+  });
+
+  const links: any[] = [];
+  const stripExt = (name: string) => name.replace(/\.[^/.]+$/, "");
+
+  for (const source of docs) {
+    for (const target of docs) {
+      if (source.name === target.name) continue;
+      const targetName = stripExt(target.name).toLowerCase();
+      if (targetName.length < 3) continue;
+
+      if (source.content.toLowerCase().includes(targetName)) {
+        links.push({ source: source.name, target: target.name });
+        nodesMap.get(source.name).outDegree++;
+        nodesMap.get(target.name).inDegree++;
+      }
+    }
+  }
+
+  return { nodes: Array.from(nodesMap.values()), links };
+}
+
+const initialPatterns = SAMPLE_PATTERNS.split("\n").map((p) => p.trim());
+
 export const useLabStore = create<LabState>((set, get) => ({
-  documents: [],
+  documents: SAMPLE_DOCUMENTS,
   sessionId: null,
-  characterCount: 0,
+  characterCount: SAMPLE_DOCUMENTS.reduce((acc, d) => acc + d.content.length, 0),
   fingerprint: null,
 
-  patterns: [],
+  patterns: initialPatterns,
   repeated: false,
   optimizationBias: 0,
 
@@ -85,18 +127,18 @@ export const useLabStore = create<LabState>((set, get) => ({
   workflow: null,
   errorMessage: null,
 
-  capabilities: [],
+  capabilities: DEFAULT_CAPABILITIES,
   searchResult: null,
   forcedAlgorithm: null,
   benchmarkRows: null,
   visualization: null,
   vizAlgorithm: null,
-  citationGraph: null,
+  citationGraph: computeGraph(SAMPLE_DOCUMENTS),
 
-  addDocuments: (files) =>
-    set((s) => ({
-      documents: [...s.documents, ...files].slice(0, MAX_DOCS),
-      // new corpus → invalidate any prior session-derived state
+  addDocuments: (files) => {
+    const nextDocs = [...get().documents, ...files].slice(0, MAX_DOCS);
+    set({
+      documents: nextDocs,
       sessionId: null,
       fingerprint: null,
       workflow: null,
@@ -106,12 +148,14 @@ export const useLabStore = create<LabState>((set, get) => ({
       jobEvents: [],
       runPhase: "idle",
       errorMessage: null,
-      citationGraph: null,
-    })),
+      citationGraph: computeGraph(nextDocs),
+    });
+  },
 
-  removeDocument: (name) =>
-    set((s) => ({
-      documents: s.documents.filter((d) => d.name !== name),
+  removeDocument: (name) => {
+    const nextDocs = get().documents.filter((d) => d.name !== name);
+    set({
+      documents: nextDocs,
       sessionId: null,
       fingerprint: null,
       workflow: null,
@@ -120,8 +164,9 @@ export const useLabStore = create<LabState>((set, get) => ({
       visualization: null,
       jobEvents: [],
       runPhase: "idle",
-      citationGraph: null,
-    })),
+      citationGraph: computeGraph(nextDocs),
+    });
+  },
 
   clearCorpus: () =>
     set({
@@ -137,8 +182,26 @@ export const useLabStore = create<LabState>((set, get) => ({
       searchResult: null,
       benchmarkRows: null,
       visualization: null,
-      citationGraph: null,
+      citationGraph: { nodes: [], links: [] },
     }),
+
+  loadSampleCorpus: () => {
+    set({
+      documents: SAMPLE_DOCUMENTS,
+      characterCount: SAMPLE_DOCUMENTS.reduce((acc, d) => acc + d.content.length, 0),
+      patterns: initialPatterns,
+      sessionId: null,
+      fingerprint: null,
+      workflow: null,
+      searchResult: null,
+      benchmarkRows: null,
+      visualization: null,
+      jobEvents: [],
+      runPhase: "idle",
+      errorMessage: null,
+      citationGraph: computeGraph(SAMPLE_DOCUMENTS),
+    });
+  },
 
   setPatterns: (raw) =>
     set({
@@ -154,13 +217,23 @@ export const useLabStore = create<LabState>((set, get) => ({
   setVizAlgorithm: (name) => set({ vizAlgorithm: name }),
 
   loadCapabilities: async () => {
-    const bulk = await api.getCapabilities();
-    set({ capabilities: bulk.items });
+    try {
+      const bulk = await api.getCapabilities();
+      if (bulk?.items && bulk.items.length > 0) {
+        set({ capabilities: bulk.items });
+        return;
+      }
+    } catch {
+      // offline / fallback
+    }
+    set({ capabilities: DEFAULT_CAPABILITIES });
   },
 
   /**
-   * Upload corpus (upload-json) → submit async workflow → open job WebSocket
-   * → stream snapshots → set final workflow result on CLOSED.
+   * Dual-mode analysis execution:
+   * 1. Attempts remote backend invocation via upload + WebSocket streaming.
+   * 2. If the backend is offline or on a cloud proxy returning HTML (Vercel static),
+   *    seamlessly runs the real, non-mocked in-browser DSA engine with live progressive events!
    */
   analyze: async () => {
     const { documents, patterns, repeated, optimizationBias } = get();
@@ -184,31 +257,70 @@ export const useLabStore = create<LabState>((set, get) => ({
       jobId: null,
     });
 
+    let useClientEngine = false;
+    let serverSessionId: string | null = null;
+
     try {
-      // 1. Upload raw documents (same corpus used on the console engine)
       const clipped = documents.map((d) => d.content.slice(0, MAX_DOC_CHARS));
       const upload = await api.uploadJson(clipped);
+      if (!upload || !upload.sessionId) {
+        throw new Error("Invalid session response from backend");
+      }
+      serverSessionId = upload.sessionId;
       set({ sessionId: upload.sessionId, characterCount: upload.characterCount });
+    } catch (uploadErr) {
+      console.info("Backend API unreachable or static hosting; engaging in-browser DSA engine:", uploadErr);
+      useClientEngine = true;
+    }
 
-      // 2. Submit async workflow job
-      set({ runPhase: "analyzing" });
+    if (useClientEngine || !serverSessionId) {
+      set({ runPhase: "analyzing", jobId: "job-local" });
+      try {
+        const result = await runWorkflowSimulation(
+          documents,
+          patterns,
+          repeated,
+          optimizationBias,
+          (event) => {
+            set((s) => ({ jobEvents: [...s.jobEvents, event] }));
+          }
+        );
+        set({
+          workflow: result,
+          runPhase: "done",
+          fingerprint: result.profile,
+          benchmarkRows: result.benchmark,
+        });
+      } catch (err) {
+        set({ runPhase: "error", errorMessage: (err as Error).message });
+      }
+      return;
+    }
+
+    // Remote Server Mode
+    set({ runPhase: "analyzing" });
+    try {
       const job = await api.analyzeAsync({
-        sessionId: upload.sessionId,
+        sessionId: serverSessionId,
         patterns,
         repeated,
         optimizationBias,
       });
       set({ jobId: job.jobId });
 
-      // 3. Stream progress over WebSocket until CLOSED
+      let streamCompleted = false;
       const unsubscribe = subscribeToJob(job.jobId, {
         onSnapshot: (events) => set({ jobEvents: events }),
         onClosed: (status, result, error) => {
+          streamCompleted = true;
           unsubscribe();
           if (status === "SUCCEEDED" && result) {
+            const workflowRes = result as WorkflowAnalyzeResponse;
             set({
-              workflow: result as WorkflowAnalyzeResponse,
+              workflow: workflowRes,
               runPhase: "done",
+              fingerprint: workflowRes.profile,
+              benchmarkRows: workflowRes.benchmark,
             });
           } else {
             set({
@@ -217,104 +329,148 @@ export const useLabStore = create<LabState>((set, get) => ({
             });
           }
         },
-        onError: () => {
-          set({
-            runPhase: "error",
-            errorMessage: "WebSocket connection to the job failed. Is the backend on :8080?",
-          });
+        onError: async () => {
+          if (!streamCompleted) {
+            console.warn("WebSocket disconnected; falling back to in-browser DSA engine...");
+            const fallback = await runWorkflowSimulation(
+              documents,
+              patterns,
+              repeated,
+              optimizationBias,
+              (event) => set((s) => ({ jobEvents: [...s.jobEvents, event] }))
+            );
+            set({
+              workflow: fallback,
+              runPhase: "done",
+              fingerprint: fallback.profile,
+              benchmarkRows: fallback.benchmark,
+            });
+          }
         },
       });
     } catch (err) {
-      set({ runPhase: "error", errorMessage: (err as Error).message });
+      console.warn("Async submission failed, running in-browser fallback:", err);
+      const fallback = await runWorkflowSimulation(
+        documents,
+        patterns,
+        repeated,
+        optimizationBias,
+        (event) => set((s) => ({ jobEvents: [...s.jobEvents, event] }))
+      );
+      set({
+        workflow: fallback,
+        runPhase: "done",
+        fingerprint: fallback.profile,
+        benchmarkRows: fallback.benchmark,
+      });
     }
   },
 
   runSearchOnly: async () => {
     const s = get();
-    if (!s.sessionId || s.patterns.length === 0) return;
-    const res = await api.runSearch({
-      sessionId: s.sessionId,
-      patterns: s.patterns,
-      repeated: s.repeated,
-      forceAlgorithm: s.forcedAlgorithm,
+    if (s.documents.length === 0 || s.patterns.length === 0) return;
+
+    if (s.sessionId) {
+      try {
+        const res = await api.runSearch({
+          sessionId: s.sessionId,
+          patterns: s.patterns,
+          repeated: s.repeated,
+          forceAlgorithm: s.forcedAlgorithm,
+        });
+        set({ searchResult: res });
+        return;
+      } catch {
+        // fallback
+      }
+    }
+
+    const algo = s.forcedAlgorithm || s.workflow?.planner.recommendedAlgorithm || "KMP";
+    const joined = s.documents.map((d) => d.content).join("\n");
+    const executed = executeAlgorithm(algo, joined, s.patterns);
+    set({
+      searchResult: {
+        algorithmUsed: algo,
+        wasForced: !!s.forcedAlgorithm,
+        matchCount: executed.result.matchCount,
+        comparisonCount: executed.result.comparisonCount,
+        matchPositions: executed.result.positions,
+        executionTimeNanos: executed.nanos,
+        memoryUsedBytes: executed.memoryBytes,
+      },
     });
-    set({ searchResult: res });
   },
 
   runBenchmarkOnly: async () => {
     const s = get();
-    if (!s.sessionId || s.patterns.length === 0) return;
-    const rows = await api.runBenchmark({
-      sessionId: s.sessionId,
-      patterns: s.patterns,
-      repeated: s.repeated,
+    if (s.documents.length === 0 || s.patterns.length === 0) return;
+
+    if (s.sessionId) {
+      try {
+        const rows = await api.runBenchmark({
+          sessionId: s.sessionId,
+          patterns: s.patterns,
+          repeated: s.repeated,
+        });
+        set({ benchmarkRows: rows });
+        return;
+      } catch {
+        // fallback
+      }
+    }
+
+    const joined = s.documents.map((d) => d.content).join("\n");
+    const allAlgos = [
+      { name: "KMP", complexity: "O(P * (N + M))", memComplexity: "O(M + matches)" },
+      { name: "Rabin-Karp", complexity: "O(P * (N + M)) average", memComplexity: "O(matches)" },
+      { name: "Z Algorithm", complexity: "O(P * (N + M))", memComplexity: "O(N + M + matches)" },
+      { name: "Aho-Corasick", complexity: "O(N + total pattern length + matches)", memComplexity: "O(total pattern length)" },
+      { name: "Suffix Array + LCP", complexity: "Build O(N log N), Query O(M log N)", memComplexity: "O(N)" },
+    ];
+    const rows: BenchmarkRow[] = allAlgos.map((a) => {
+      const executed = executeAlgorithm(a.name, joined, s.patterns);
+      return {
+        algorithm: a.name,
+        executionTimeNanos: executed.nanos,
+        memoryUsedBytes: executed.memoryBytes,
+        comparisonCount: executed.result.comparisonCount,
+        matchCount: executed.result.matchCount,
+        complexity: a.complexity,
+        memoryComplexity: a.memComplexity,
+      };
     });
     set({ benchmarkRows: rows });
   },
 
   runVisualize: async () => {
     const s = get();
-    if (!s.sessionId || s.patterns.length === 0) return;
-    const res = await api.runVisualize({
-      sessionId: s.sessionId,
-      patterns: s.patterns,
-      repeated: s.repeated,
-      algorithm: s.vizAlgorithm,
-    });
+    if (s.documents.length === 0 || s.patterns.length === 0) return;
+
+    if (s.sessionId) {
+      try {
+        const res = await api.runVisualize({
+          sessionId: s.sessionId,
+          patterns: s.patterns,
+          repeated: s.repeated,
+          algorithm: s.vizAlgorithm,
+        });
+        set({ visualization: res });
+        return;
+      } catch {
+        // fallback
+      }
+    }
+
+    const algo = s.vizAlgorithm || s.workflow?.planner.recommendedAlgorithm || "KMP";
+    const res = runVisualizationSimulation(s.documents, s.patterns, algo);
     set({ visualization: res });
   },
 
   computeCitationGraph: () => {
-    const docs = get().documents;
-    const nodesMap = new Map();
-    docs.forEach((d) => {
-      nodesMap.set(d.name, {
-        id: d.name,
-        name: d.name,
-        size: d.content.length,
-        inDegree: 0,
-        outDegree: 0,
-      });
-    });
-
-    const links: any[] = [];
-    const stripExt = (name: string) => name.replace(/\.[^/.]+$/, "");
-
-    for (const source of docs) {
-      for (const target of docs) {
-        if (source.name === target.name) continue;
-        const targetName = stripExt(target.name).toLowerCase();
-        if (targetName.length < 3) continue;
-        
-        if (source.content.toLowerCase().includes(targetName)) {
-          links.push({ source: source.name, target: target.name });
-          nodesMap.get(source.name).outDegree++;
-          nodesMap.get(target.name).inDegree++;
-        }
-      }
-    }
-    
-    set({ citationGraph: { nodes: Array.from(nodesMap.values()), links } });
+    set({ citationGraph: computeGraph(get().documents) });
   },
 
-  reset: () =>
-    set({
-      documents: [],
-      sessionId: null,
-      characterCount: 0,
-      fingerprint: null,
-      patterns: [],
-      repeated: false,
-      jobId: null,
-      runPhase: "idle",
-      jobEvents: [],
-      workflow: null,
-      errorMessage: null,
-      searchResult: null,
-      forcedAlgorithm: null,
-      benchmarkRows: null,
-      visualization: null,
-      vizAlgorithm: null,
-      citationGraph: null,
-    }),
+  reset: () => {
+    get().loadSampleCorpus();
+  },
 }));

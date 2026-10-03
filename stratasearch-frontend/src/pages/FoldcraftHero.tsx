@@ -39,12 +39,12 @@ export default function FoldcraftHero() {
               Strata Lab
             </Link>
             <a
-              href="http://localhost:8080/swagger-ui.html"
+              href="https://github.com/sashank321/A-7_DSA-3_G-7#system-architecture"
               target="_blank"
               rel="noreferrer"
               className="text-sm text-white/80 transition-colors hover:text-white"
             >
-              API Docs
+              Docs &amp; Architecture
             </a>
           </nav>
         </div>

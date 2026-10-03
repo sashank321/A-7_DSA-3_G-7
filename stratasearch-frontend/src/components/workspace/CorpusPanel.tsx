@@ -75,6 +75,7 @@ export default function CorpusPanel() {
   const addDocuments = useLabStore((s) => s.addDocuments);
   const removeDocument = useLabStore((s) => s.removeDocument);
   const clearCorpus = useLabStore((s) => s.clearCorpus);
+  const loadSampleCorpus = useLabStore((s) => s.loadSampleCorpus);
   const characterCount = useLabStore((s) => s.characterCount);
   const sessionId = useLabStore((s) => s.sessionId);
 
@@ -205,7 +206,7 @@ export default function CorpusPanel() {
         <p className="text-sm font-medium text-white/70">
           Drag &amp; drop files (txt, md, pdf, etc.) here, or
         </p>
-        <div className="mt-4 flex justify-center gap-2">
+        <div className="mt-4 flex flex-wrap justify-center gap-2">
           <button
             onClick={() => fileInput.current?.click()}
             className="rounded-lg bg-white/90 backdrop-blur-md px-4 py-2 text-xs font-semibold text-zinc-950 transition-all hover:bg-white active:scale-95 shadow-md"
@@ -218,6 +219,13 @@ export default function CorpusPanel() {
           >
             <Plus size={14} className="mr-1 inline -translate-y-0.5" />
             Paste Text
+          </button>
+          <button
+            onClick={loadSampleCorpus}
+            className="rounded-lg border border-amber/30 bg-amber/10 px-4 py-2 text-xs font-semibold text-amber-300 transition-colors hover:bg-amber/20 hover:border-amber/50 active:scale-95 shadow-md flex items-center"
+          >
+            <Sparkles size={14} className="mr-1 inline" />
+            Sample Papers
           </button>
         </div>
       </div>

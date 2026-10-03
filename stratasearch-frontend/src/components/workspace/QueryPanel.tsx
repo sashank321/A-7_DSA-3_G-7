@@ -1,4 +1,4 @@
-import { useState, useMemo, useRef } from "react";
+import { useState, useMemo, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Play, Repeat, Sparkles } from "lucide-react";
 import { useLabStore } from "../../stores/labStore";
@@ -17,6 +17,10 @@ export default function QueryPanel() {
   const [raw, setRaw] = useState(patterns.join("\n"));
   const [cursorPos, setCursorPos] = useState(0);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  useEffect(() => {
+    setRaw(patterns.join("\n"));
+  }, [patterns]);
 
   const running = runPhase === "uploading" || runPhase === "analyzing";
 
