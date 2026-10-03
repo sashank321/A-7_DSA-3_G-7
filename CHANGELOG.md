@@ -1,3 +1,14 @@
+## [1.1.0-rc1] - 2026-10-03
+
+### Added
+- GitHub Actions CI for backend and frontend
+- SuffixArray test stub
+- Type guard in client-side planner
+- 5th sample paper (DC3 suffix array)
+### Fixed
+- Null/empty guard in profiler
+- Badge hover state UX
+
 ## [1.0.5] - 2026-10-01
 
 ### Added
