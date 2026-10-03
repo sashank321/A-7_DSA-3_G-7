@@ -169,3 +169,12 @@ export function evaluatePlanner(
     scores,
   };
 }
+
+
+/** Type guard: verify corpus profile shape before scoring */
+function isValidProfile(p: unknown): boolean {
+  if (typeof p !== 'object' || p === null) return false;
+  const o = p as Record<string, unknown>;
+  return ['entropy','vocabRichness','avgPatternLen','patternCount','corpusLen']
+    .every(k => typeof o[k] === 'number');
+}
