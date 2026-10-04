@@ -1,4 +1,7 @@
 # A-7_DSA-3_G-7
+
+[![Vercel](https://img.shields.io/badge/deployed-vercel-black?logo=vercel)](https://stratasearch-frontend.vercel.app) [![CI](https://github.com/sashank321/A-7_DSA-3_G-7/actions/workflows/ci.yml/badge.svg)](https://github.com/sashank321/A-7_DSA-3_G-7/actions)
+
 # StrataSearch
 
 ## An Intelligent Document Search and Analysis Platform
