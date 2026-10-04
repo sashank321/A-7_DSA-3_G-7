@@ -1,3 +1,12 @@
+## [1.1.0] - 2026-10-04
+
+### Added
+- CONTRIBUTING.md with setup and commit-convention guide
+- Deployment and CI badges in README
+- Aria navigation label for accessibility
+### Notes
+- Release candidate promoted to 1.1.0 after successful Vercel deployment
+
 ## [1.1.0-rc1] - 2026-10-03
 
 ### Added
