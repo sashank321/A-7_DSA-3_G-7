@@ -9,7 +9,8 @@ out/
 # Dependencies
 node_modules/
 **/node_modules/
-lib/
+/lib/
+stratasearch-backend/lib/
 lib-extra/
 *.jar
 

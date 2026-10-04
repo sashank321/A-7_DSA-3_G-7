@@ -47,8 +47,11 @@ public class CorpusService {
             try {
                 byte[] Bytes = F.getBytes();
                 String content;
-                if (F.getOriginalFilename() != null && F.getOriginalFilename().toLowerCase().endsWith(".pdf")) {
+                String filename = F.getOriginalFilename() != null ? F.getOriginalFilename().toLowerCase() : "";
+                if (filename.endsWith(".pdf")) {
                     content = extractTextFromPdf(Bytes);
+                } else if (filename.endsWith(".docx")) {
+                    content = extractTextFromDocx(Bytes);
                 } else {
                     content = new String(Bytes, StandardCharsets.UTF_8);
                 }
@@ -58,6 +61,16 @@ public class CorpusService {
             }
         }
         return RegisterSession(Docs.toArray(new String[0]));
+    }
+
+    private String extractTextFromDocx(byte[] bytes) {
+        try (java.io.ByteArrayInputStream bis = new java.io.ByteArrayInputStream(bytes);
+             org.apache.poi.xwpf.usermodel.XWPFDocument document = new org.apache.poi.xwpf.usermodel.XWPFDocument(bis);
+             org.apache.poi.xwpf.extractor.XWPFWordExtractor extractor = new org.apache.poi.xwpf.extractor.XWPFWordExtractor(document)) {
+            return extractor.getText();
+        } catch (Exception ex) {
+            throw new ApiException(400, "Failed to parse Word (.docx) document: " + ex.getMessage());
+        }
     }
 
     private String extractTextFromPdf(byte[] bytes) {

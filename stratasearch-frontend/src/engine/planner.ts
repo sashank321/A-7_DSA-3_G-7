@@ -61,19 +61,30 @@ export function evaluatePlanner(
   scoreZ += bias * 0.9;
 
   // 4. Aho-Corasick Score
-  let scoreAho = 0.6;
-  scoreAho -= W_PATTERN * (patternCount >= 2 ? 0.75 : -0.2);
-  scoreAho += W_REPEAT * (repeated ? 0.3 : 0.0);
-  scoreAho += W_SIZE * normalizeSize(fp.characterCount) * 0.15;
-  scoreAho -= W_ENTROPY * (fp.entropyEstimate / 4.0) * 0.1;
-  scoreAho += bias * 0.2;
+  let scoreAho = 0.7;
+  if (patternCount <= 1) {
+    scoreAho += 0.4;
+  } else {
+    scoreAho -= W_PATTERN * 0.55;
+  }
+  scoreAho += W_REPEAT * (repeated ? 0.4 : 0.0);
+  scoreAho += W_SIZE * normalizeSize(fp.characterCount) * 0.1;
+  scoreAho -= W_QUERY * normalizeLen(avgPatternLen) * 0.05;
+  scoreAho += bias * 1.5; // Heavy penalty for building large trie state machine
 
   // 5. Suffix Array Score
-  let scoreSa = 0.8;
-  scoreSa -= W_REPEAT * (repeated ? 0.8 : -0.3);
-  scoreSa += W_SIZE * (fp.characterCount > 100000 ? 0.4 : -0.1);
-  scoreSa -= W_PATTERN * (patternCount > 5 ? 0.3 : 0.0);
-  scoreSa += bias * 0.4;
+  let scoreSa = 0.75;
+  scoreSa -= W_REPEAT * (repeated ? 0.55 : -0.25);
+  scoreSa += W_SIZE * (1.0 - normalizeSize(fp.characterCount)) * 0.15;
+  const isIndexFriendly = fp.corpusCategory === "INDEX_FRIENDLY" || fp.categoryTags?.includes("INDEX_FRIENDLY");
+  if (isIndexFriendly) {
+    scoreSa -= 0.1;
+  }
+  if (patternCount > 1 && !repeated) {
+    scoreSa += 0.15;
+  }
+  scoreSa -= W_QUERY * normalizeLen(avgPatternLen) * 0.05;
+  scoreSa += bias * 1.2; // High penalty for O(N) indexing arrays
 
   const scores: AlgorithmScore[] = [
     { algorithm: "Aho-Corasick", score: Number(scoreAho.toFixed(4)) },
@@ -172,7 +183,7 @@ export function evaluatePlanner(
 
 
 /** Type guard: verify corpus profile shape before scoring */
-function isValidProfile(p: unknown): boolean {
+export function isValidProfile(p: unknown): boolean {
   if (typeof p !== 'object' || p === null) return false;
   const o = p as Record<string, unknown>;
   return ['entropy','vocabRichness','avgPatternLen','patternCount','corpusLen']

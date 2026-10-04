@@ -92,13 +92,32 @@ function computeGraph(docs: LabFile[]) {
   const links: any[] = [];
   const stripExt = (name: string) => name.replace(/\.[^/.]+$/, "");
 
-  for (const source of docs) {
-    for (const target of docs) {
-      if (source.name === target.name) continue;
-      const targetName = stripExt(target.name).toLowerCase();
-      if (targetName.length < 3) continue;
+  // Build lookup keys for each document:
+  // 1. Direct filename without extension (e.g., "Knuth1977_FastPatternMatching")
+  // 2. Author-year prefix if present (e.g., "Knuth1977" from "Knuth1977_FastPatternMatching")
+  // 3. First significant phrase/title in document
+  const docKeys = docs.map((d) => {
+    const rawBase = stripExt(d.name);
+    const keys: string[] = [rawBase.toLowerCase()];
 
-      if (source.content.toLowerCase().includes(targetName)) {
+    // Author+year pattern e.g. "Knuth1977" or "Rabin 1981" or "Manber 1993"
+    const authorYearMatch = rawBase.match(/^([A-Za-z]+)(\d{4})/);
+    if (authorYearMatch) {
+      keys.push(authorYearMatch[0].toLowerCase());
+      keys.push(`${authorYearMatch[1]} ${authorYearMatch[2]}`.toLowerCase());
+      keys.push(`${authorYearMatch[1]} et al. ${authorYearMatch[2]}`.toLowerCase());
+    }
+
+    return { name: d.name, keys: keys.filter((k) => k.length >= 3) };
+  });
+
+  for (const source of docs) {
+    const srcLower = source.content.toLowerCase();
+    for (const target of docKeys) {
+      if (source.name === target.name) continue;
+
+      const cited = target.keys.some((key) => srcLower.includes(key));
+      if (cited) {
         links.push({ source: source.name, target: target.name });
         nodesMap.get(source.name).outDegree++;
         nodesMap.get(target.name).inDegree++;

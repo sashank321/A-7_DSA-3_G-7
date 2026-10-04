@@ -5,7 +5,24 @@ import type { PlannerExplainResponse } from "../../api/types";
 
 const BEST = "linear-gradient(135deg, var(--color-amber), var(--color-amber-2))";
 
-function ScoreBar({ algo, score, recommended }: { algo: string; score: number; recommended: boolean }) {
+function ScoreBar({
+  algo,
+  score,
+  minScore,
+  maxScore,
+  recommended,
+}: {
+  algo: string;
+  score: number;
+  minScore: number;
+  maxScore: number;
+  recommended: boolean;
+}) {
+  // CostModel: lower score = lower cost = better fit.
+  // Invert and map to 15% - 95% range for intuitive progress bar.
+  const range = Math.max(maxScore - minScore, 0.001);
+  const normalizedSuitability = Math.max(15, Math.min(95, 95 - ((score - minScore) / range) * 75));
+
   return (
     <div className="flex items-center gap-3">
       <span
@@ -17,13 +34,15 @@ function ScoreBar({ algo, score, recommended }: { algo: string; score: number; r
       <div className="relative h-2 flex-1 rounded-full bg-white/[0.03] border border-white/[0.06] overflow-hidden">
         <motion.div
           initial={{ width: 0 }}
-          animate={{ width: `${score}%` }}
+          animate={{ width: `${normalizedSuitability}%` }}
           transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
           style={recommended ? { background: BEST } : undefined}
           className={`h-full ${recommended ? "" : "bg-white/20"}`}
         />
       </div>
-      <span className="w-12 text-right font-mono text-xs text-white/90">{score.toFixed(1)}</span>
+      <span className="w-14 text-right font-mono text-xs text-white/90">
+        cost {score.toFixed(2)}
+      </span>
     </div>
   );
 }
@@ -125,14 +144,21 @@ export function PlannerPanel({ planner }: { planner: PlannerExplainResponse }) {
 
       {/* score table */}
       <div className="mt-5 space-y-2.5 rounded-xl bg-black/30 p-4 border border-white/5">
-        {top.map((s) => (
-          <ScoreBar
-            key={s.algorithm}
-            algo={s.algorithm}
-            score={s.score}
-            recommended={s.algorithm === planner.recommendedAlgorithm}
-          />
-        ))}
+        {(() => {
+          const allScores = planner.scores.map((s) => s.score);
+          const minScore = Math.min(...allScores);
+          const maxScore = Math.max(...allScores);
+          return top.map((s) => (
+            <ScoreBar
+              key={s.algorithm}
+              algo={s.algorithm}
+              score={s.score}
+              minScore={minScore}
+              maxScore={maxScore}
+              recommended={s.algorithm === planner.recommendedAlgorithm}
+            />
+          ));
+        })()}
       </div>
 
       {/* advantages / trade-offs / because-clauses */}

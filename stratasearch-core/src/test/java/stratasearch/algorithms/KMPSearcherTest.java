@@ -2,20 +2,29 @@ package stratasearch.algorithms;
 
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
-import java.util.List;
 
 class KMPSearcherTest {
 
     @Test
     void findsAllOccurrences() {
-        KMPSearcher searcher = new KMPSearcher();
-        List<Integer> hits = searcher.search("ababcabab", "abab");
-        assertFalse(hits.isEmpty());
+        KmpSearcher searcher = new KmpSearcher();
+        SearchResult res = searcher.Search("ababcabab", new String[]{"abab"});
+        assertEquals(2, res.GetMatchCount());
+        assertEquals(0, res.GetMatchPositions()[0]);
+        assertEquals(5, res.GetMatchPositions()[1]);
     }
 
     @Test
     void noMatchReturnsEmpty() {
-        KMPSearcher searcher = new KMPSearcher();
-        assertTrue(searcher.search("hello world", "xyz").isEmpty());
+        KmpSearcher searcher = new KmpSearcher();
+        SearchResult res = searcher.Search("hello world", new String[]{"xyz"});
+        assertEquals(0, res.GetMatchCount());
+    }
+
+    @Test
+    void emptyPatternHandled() {
+        KmpSearcher searcher = new KmpSearcher();
+        SearchResult res = searcher.Search("hello world", new String[]{""});
+        assertEquals(0, res.GetMatchCount());
     }
 }

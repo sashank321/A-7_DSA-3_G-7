@@ -34,18 +34,18 @@ For indexing large static corpora, SuffixArray methods (Manber1993_SuffixArrays)
 We introduce a new data structure called the Suffix Array, which is an array of integers providing the starting positions of suffixes of a string sorted in lexicographical order.
 Suffix arrays provide the power of suffix trees while using three to five times less space.
 Using an auxiliary Longest Common Prefix (LCP) array, searching for a pattern P of length m in a corpus of length n requires O(m + log n) time.
-Unlike online search algorithms like Knuth1977_FastPatternMatching, Rabin1981_RandomizedPattern, and Aho1975_EfficientStringMatching which rescan the corpus for each query, the Suffix Array index is constructed once in O(n log n) and amortizes query cost across thousands of searches.`,
+Unlike online search algorithms like Knuth1977_FastPatternMatching, Rabin1981_RandomizedPattern, and Aho1975_EfficientStringMatching which rescan the corpus for each query, the Suffix Array index is constructed once in O(n log n) and amortizes query cost across thousands of searches.
+Linear-time construction approaches (Karkkainen2003_LinearSuffixArrays) further eliminate the O(n log n) bottleneck.`,
+  },
+  {
+    name: "Karkkainen2003_LinearSuffixArrays.txt",
+    content: `Simple Linear Work Suffix Array Construction by Juha Karkkainen and Peter Sanders.
+We present a direct algorithm for suffix array construction that achieves O(n) worst-case time complexity without using suffix trees.
+The DC3 skew algorithm recursively sorts suffixes at positions i mod 3 != 0, constructs an auxiliary LCP array, and merges with suffixes at positions i mod 3 == 0 in linear time.
+Benchmarks comparing against Manber1993_SuffixArrays show substantial speedups on large repetitive corpora.
+Together with Knuth1977_FastPatternMatching and Aho1975_EfficientStringMatching, suffix arrays provide the complete foundation for modern index-based full text search.`,
   },
 ];
 
 export const SAMPLE_PATTERNS = "pattern\nalgorithm\nsuffix\nlinear\nsearch";
 
-
-// 5th sample paper added 2026-10-02
-export const PAPER_5 = {
-  id: "p5",
-  title: "Practical Suffix Array Construction in Linear Time",
-  abstract: "We present a practical implementation of suffix array construction achieving O(n) time complexity using the DC3/skew algorithm. Benchmarks on corpora of 10^7 characters show 2.3x speedup versus naive O(n log n) sort-based approaches.",
-  body: "Suffix arrays provide a space-efficient alternative to suffix trees for string indexing. The DC3 algorithm partitions suffixes into three classes by position modulo 3, recursively sorts two thirds, then merges all in linear time.",
-  citations: ["p2", "p3"],
-};

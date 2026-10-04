@@ -24,12 +24,30 @@ async function extractTextFromPdf(file: File): Promise<string> {
   return fullText;
 }
 
+async function extractTextFromDocx(file: File): Promise<string> {
+  const arrayBuffer = await file.arrayBuffer();
+  const mammoth = (window as any).mammoth;
+  if (mammoth) {
+    const result = await mammoth.extractRawText({ arrayBuffer });
+    return result.value || "";
+  }
+  // Fallback: decode as UTF-8 string and filter printable text
+  const text = new TextDecoder("utf-8", { fatal: false }).decode(arrayBuffer);
+  return text.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F]/g, " ");
+}
+
 async function readFiles(list: FileList): Promise<LabFile[]> {
   const out: LabFile[] = [];
   for (const f of Array.from(list)) {
     const isPdf = f.type === "application/pdf" || /\.pdf$/i.test(f.name);
-    const isText = f.type.startsWith("text/") || /\.(txt|md|json|csv|log)$/i.test(f.name);
-    if (!isText && !isPdf) {
+    const isDocx =
+      f.type === "application/vnd.openxmlformats-officedocument.wordprocessingml.document" ||
+      /\.(docx|doc)$/i.test(f.name);
+    const isText =
+      f.type.startsWith("text/") ||
+      /\.(txt|md|json|csv|log|rtf)$/i.test(f.name);
+
+    if (!isText && !isPdf && !isDocx) {
       alert(`Skipping ${f.name}: Unsupported file type.`);
       continue;
     }
@@ -37,6 +55,9 @@ async function readFiles(list: FileList): Promise<LabFile[]> {
     try {
       if (isPdf) {
         const text = await extractTextFromPdf(f);
+        out.push({ name: f.name.slice(0, MAX_NAME_LEN), content: text });
+      } else if (isDocx) {
+        const text = await extractTextFromDocx(f);
         out.push({ name: f.name.slice(0, MAX_NAME_LEN), content: text });
       } else {
         const content = await f.text();
@@ -193,7 +214,7 @@ export default function CorpusPanel() {
         <input
           ref={fileInput}
           type="file"
-          accept=".txt,.md,.json,.csv,.log,.pdf"
+          accept=".txt,.md,.json,.csv,.log,.pdf,.docx,.doc"
           multiple
           className="hidden"
           onChange={async (e) => {

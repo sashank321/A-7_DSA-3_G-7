@@ -25,7 +25,6 @@ export function VisualizationPlayer() {
   const setVizAlgorithm = useLabStore((s) => s.setVizAlgorithm);
   const visualization = useLabStore((s) => s.visualization);
   const runVisualize = useLabStore((s) => s.runVisualize);
-  const sessionId = useLabStore((s) => s.sessionId);
   const documents = useLabStore((s) => s.documents);
   const patterns = useLabStore((s) => s.patterns);
   const loadCapabilities = useLabStore((s) => s.loadCapabilities);
@@ -57,7 +56,6 @@ export function VisualizationPlayer() {
   }, [playing, cursor, working]);
 
   async function loadViz() {
-    if (!sessionId) return;
     setLoadingViz(true);
     setPlaying(false);
     try {
