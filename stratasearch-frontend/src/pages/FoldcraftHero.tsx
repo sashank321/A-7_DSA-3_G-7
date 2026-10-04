@@ -31,7 +31,7 @@ export default function FoldcraftHero() {
           <Link to="/" className="text-lg font-semibold tracking-tight text-white sm:text-xl">
             Strata<span className="text-amber">Search</span>
           </Link>
-          <nav className="hidden items-center gap-6 md:flex">
+          <nav aria-label="Main navigation" className="hidden items-center gap-6 md:flex">
             <Link to="/" className="text-sm text-white/80 transition-colors hover:text-white">
               Home
             </Link>
